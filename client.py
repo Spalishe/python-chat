@@ -2,10 +2,28 @@ import socket as sc
 import threading as th
 import json
 import os
+import requests as rq
+import sys
+
+VERS = "1.0.0"
+
+AUTOUPDATEDATA = rq.get("")
+print("Checking for updates...")
+if VERS != AUTOUPDATEDATA.content:
+    print("Update found! Installing new version " + AUTOUPDATEDATA.content)
+    UPDATEDATA = rq.get("client/" + AUTOUPDATEDATA.content + "/client.py")
+    f = open(os.path.realpath(__file__), "wb")
+    f.write(UPDATEDATA.content)
+    f.close()
+    print("Updated succesfully, restarting...")
+    os.execv(sys.argv[0], sys.argv)
+else:
+    print("Installed last version " + VERS)
 
 IP = input("Enter IPv4: ")
 PORT = int(input("Enter port: "))
 USERNAME = input("Enter Username: ")
+
 
 print("Connecting...")
 
