@@ -12,7 +12,7 @@ print("Checking for updates...")
 if VERS != AUTOUPDATEDATA.text:
     print("Update found! Installing new version " + AUTOUPDATEDATA.text)
     UPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/client/" + AUTOUPDATEDATA.text + "/client.py")
-    f = open(os.path.realpath(__file__), "wb")
+    f = open(os.path.realpath(__file__), "w")
     f.write(UPDATEDATA.text)
     f.close()
     print("Updated succesfully, restarting...")
