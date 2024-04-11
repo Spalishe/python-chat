@@ -5,7 +5,7 @@ import os
 import requests as rq
 import sys
 
-VERS = "1.0.0"
+VERS = "1.0.1"
 
 AUTOUPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/latestversion.txt")
 print("Checking for updates...")

@@ -5,18 +5,18 @@ import os
 import requests as rq
 import sys
 
-VERS = "1.0.1"
+VERS = "1.0.0"
 
 AUTOUPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/latestversion.txt")
 print("Checking for updates...")
 if VERS != AUTOUPDATEDATA.text:
     print("Update found! Installing new version " + AUTOUPDATEDATA.text)
     UPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/client/" + AUTOUPDATEDATA.text + "/client.py")
-    f = open(os.path.realpath(__file__), "w")
+    f = open(os.path.realpath(__file__), "wb")
     f.write(UPDATEDATA.text)
     f.close()
     print("Updated succesfully, restarting...")
-    os.execv(sys.executable, [sys.executable, __file__] + sys.argv)
+    os.execv(sys.argv[0], sys.argv)
 else:
     print("Installed last version " + VERS)
 
