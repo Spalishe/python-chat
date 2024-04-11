@@ -4,7 +4,6 @@ import json
 import os
 import requests as rq
 import sys
-import errno
 
 class bcolors:
     HEADER = '\033[95m'
@@ -19,7 +18,7 @@ class bcolors:
 
 VERS = "1.0.3"
 
-AUTOUPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/сlient/latestversion.txt")
+AUTOUPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/client/latestversion.txt")
 VERSIONLIST = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/client/versionlist.txt")
 def checkExistVersion(ver):
     Arr = VERSIONLIST.text.splitlines()
