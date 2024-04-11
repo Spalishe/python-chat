@@ -4,7 +4,9 @@ from datetime import datetime as dt
 import json
 import time
 import traceback
-#from random import randint as ri
+import requests as rq
+import sys
+import os
 
 class bcolors:
     HEADER = '\033[95m'
@@ -17,11 +19,66 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+VERS = "1.0.0"
+
+AUTOUPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/server/latestversion.txt")
+VERSIONLIST = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/server/versionlist.txt")
+def checkExistVersion(ver):
+    Arr = VERSIONLIST.text.splitlines()
+    if ver in Arr:
+        return True
+    
+    return False
+
+print(f"{bcolors.OKCYAN}Checking for updates...{bcolors.ENDC}")
+if VERS != AUTOUPDATEDATA.text:
+    print(f"{bcolors.OKGREEN}Update found! New version {AUTOUPDATEDATA.text} is available. You can install it with --upgrade {AUTOUPDATEDATA.text}{bcolors.ENDC}")
+else:
+    print(f"{bcolors.OKBLUE}Installed last version {VERS}{bcolors.ENDC}")
+
+ARGV = sys.argv
+
+ARGS = {}
+
+for i in range(1,len(ARGV)):
+    KEY = ARGV[i]
+    if KEY.lower() == "--upgrade":
+        ARGS["upgrade"] = int(ARGV[i] or 0)
+    if KEY.lower() == "--help" or KEY == "-?":
+        ARGS["help"] = True
+    if KEY.lower() == "--debug":
+        ARGS["debug"] = True
+
+if ARGS["help"] == True:
+    print("""List of available arguments: 
+    --upgrade: Upgrades program to selected version
+    --help: Shows this menu
+    --debug: Enables debug mode
+""")
+    os._exit()
+
+if ARGS["upgrade"]:
+    if ARGS["upgrade"] != 0:
+        if checkExistVersion(ARGS["upgrade"]):
+            print(f"{bcolors.OKGREEN}[UPDATE] Found version {ARGS["upgrade"]}, downloading...{bcolors.ENDC}")
+            UPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/server/" + ARGS["upgrade"] + "/client.py")
+            f = open(os.path.realpath(__file__), "w")
+            f.write(UPDATEDATA.text)
+            f.close()
+            print(f"{bcolors.OKGREEN}[UPDATE] Updated succesfully.{bcolors.ENDC}")
+            os._exit()
+        else:
+            print(f"{bcolors.FAIL}[UPDATE] Version {ARGS["upgrade"]} is not exists!{bcolors.ENDC}")
+            os._exit()
+    else:
+        print("List of existing versions:\n" + VERSIONLIST.text)
+        os._exit()
+
 MessageHistory = []
 ConnList = []
 
 IP = "192.168.1.29" 
-PORT = 57632 #ri(49152,65535)
+PORT = 57632
 MAXCONN = 10
 
 sock = sc.socket(sc.AF_INET, sc.SOCK_STREAM)

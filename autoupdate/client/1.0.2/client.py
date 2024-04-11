@@ -18,8 +18,8 @@ class bcolors:
 
 VERS = "1.0.2"
 
-AUTOUPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/latestversion.txt")
-VERSIONLIST = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/versionlist.txt")
+AUTOUPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/сlient/latestversion.txt")
+VERSIONLIST = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/client/versionlist.txt")
 def checkExistVersion(ver):
     Arr = VERSIONLIST.text.splitlines()
     if ver in Arr:
@@ -51,6 +51,8 @@ for i in range(1,len(ARGV)):
         ARGS["upgrade"] = int(ARGV[i] or 0)
     if KEY.lower() == "--help" or KEY == "-?":
         ARGS["help"] = True
+    if KEY.lower() == "--debug":
+        ARGS["debug"] = True
 
 if ARGS["help"] == True:
     print("""List of available arguments: 
