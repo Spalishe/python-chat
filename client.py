@@ -7,7 +7,7 @@ import sys
 
 VERS = "1.0.1"
 
-AUTOUPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/latestversion.txt")
+AUTOUPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/client/latestversion.txt")
 print("Checking for updates...")
 if VERS != AUTOUPDATEDATA.text:
     print("Update found! Installing new version " + AUTOUPDATEDATA.text)
