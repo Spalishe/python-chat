@@ -16,7 +16,7 @@ if VERS != AUTOUPDATEDATA.text:
     f.write(UPDATEDATA.text)
     f.close()
     print("Updated succesfully, restarting...")
-    os.execv(os.path.realpath(__file__), sys.argv)
+    os.execv(sys.executable, [sys.executable, __file__] + sys.argv)
 else:
     print("Installed last version " + VERS)
 
