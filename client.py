@@ -19,7 +19,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-VERS = "1.0.51"
+VERS = "1.0.52"
 
 AUTOUPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/client/latestversion.txt")
 VERSIONLIST = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/client/versionlist.txt")
@@ -50,13 +50,13 @@ for i in range(1,len(ARGV)):
         DEBUG = True
         print(f"{bcolors.OKGREEN}[DEBUG] Debug mode is enabled. You will receive all information off connection and program status.{bcolors.ENDC}")
     if KEY.lower() == "--ip" or KEY.upper() == "-I":
-        IPArgs = ARGV[i]
+        IPArgs = ARGV[i+1]
     if KEY.lower() == "--port" or KEY.upper() == "-P":
-        PortArgs = int(ARGV[i])
+        PortArgs = int(ARGV[i+1])
     if KEY.lower() == "--username" or KEY.upper() == "-U":
-        UsernameArgs = ARGV[i]
+        UsernameArgs = ARGV[i+1]
     if KEY.lower() == "--timeout" or KEY.upper() == "-T":
-        TimeoutArgs = int(ARGV[i])
+        TimeoutArgs = int(ARGV[i+1])
     if KEY.lower() == "--upgrade":
         ver = ARGV[i+1] if not ARGV[i+1].startswith("-") else "0" 
         if ver != "0":
