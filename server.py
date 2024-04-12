@@ -118,7 +118,7 @@ def client_thread(clientconn,clientaddr):
     while True:
         try:
             compressedData = clientconn.recv(1024)
-            data = json.loads(lzd.decompress(compressedData).decode())
+            data = json.loads(lzd.decompress(compressedData.decode()))
             now = dt.now().strftime("%d/%m/%Y %H:%M:%S")
             if data["type"] == "connected":
                 usrn = data["args"]["username"]

@@ -102,7 +102,7 @@ try:
 
     print(f"{bcolors.OKGREEN}[CONNECTION] Connected succesfully!{bcolors.ENDC}")
 
-    sock.send(lzc.compress(json.dumps({"type": "connected", "args": {"username": USERNAME, "debug": DEBUG}}).encode()))
+    sock.send(lzc.compress(json.dumps({"type": "connected", "args": {"username": USERNAME, "debug": DEBUG}})).encode())
 
     def send_thread():
         global Active
@@ -111,11 +111,11 @@ try:
                 com = input(">>> ")
                 if com.startswith("/"):
                     if com == "/leave":
-                        sock.send(lzc.compress(json.dumps({"type": "leave", "args": {"username": USERNAME}}).encode()))
+                        sock.send(lzc.compress(json.dumps({"type": "leave", "args": {"username": USERNAME}})).encode())
                         print(f"{bcolors.FAIL}Leaving...{bcolors.ENDC}")
                 else:
                     if Active:
-                        sock.send(lzc.compress(json.dumps({"type": "message", "args": {"username": USERNAME, "message": com}}).encode()))
+                        sock.send(lzc.compress(json.dumps({"type": "message", "args": {"username": USERNAME, "message": com}})).encode())
             else:
                 break
         return 1
@@ -126,7 +126,7 @@ try:
             if Active:
                 try:
                     compressedData = sock.recv(1024*16)
-                    data = json.loads(lzd.decompress(compressedData).decode())
+                    data = json.loads(lzd.decompress(compressedData.decode()))
                     if data["type"] == "message_history":
                         if os.name == "nt":
                             os.system("cls")
