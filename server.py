@@ -7,9 +7,7 @@ import traceback
 import requests as rq
 import sys
 import os
-import lzma
-lzc = lzma.LZMACompressor()
-lzd = lzma.LZMADecompressor()
+import base64
 
 class bcolors:
     HEADER = '\033[95m'
@@ -105,7 +103,7 @@ def client_thread_check(clientconn,clientaddr):
     while True:
         time.sleep(1)
         if checkIfHasValue(clientconn):
-            clientconn.send(lzc.compress(json.dumps({"type":"check"}).encode()))
+            clientconn.send(base64.b64encode(json.dumps({"type":"check"}).encode()))
             TimeOutCount = 0
         else:
             TimeOutCount = TimeOutCount + 1
@@ -117,15 +115,15 @@ def client_thread_check(clientconn,clientaddr):
 def client_thread(clientconn,clientaddr):
     while True:
         try:
-            compressedData = clientconn.recv(1024)
-            data = json.loads(lzd.decompress(compressedData.decode()))
+            compressedData = clientconn.recv(1024**2)
+            data = json.loads(base64.b64decode(compressedData))
             now = dt.now().strftime("%d/%m/%Y %H:%M:%S")
             if data["type"] == "connected":
                 usrn = data["args"]["username"]
                 debug = data["args"]["debug"]
                 send_to_all(now, clientaddr, "SERVER", f"User {usrn} joined to chat.")
                 ConnList.append({"conn": clientconn, "addr": clientaddr, "username": usrn, "debug": debug})
-                clientconn.send(lzc.compress(json.dumps({"type": "message_history", "args": {"history": ''.join(MessageHistory)}}).encode()))
+                clientconn.send(base64.b64encode(json.dumps({"type": "message_history", "args": {"history": ''.join(MessageHistory)}}).encode()))
             if data["type"] == "message":
                 usrn = data["args"]["username"]
                 send_to_all(now, clientaddr, usrn, data["args"]["message"])
@@ -134,7 +132,7 @@ def client_thread(clientconn,clientaddr):
                 usr = getUsernameByConn(clientconn)
                 ConnList.remove({"conn": clientconn, "username": usr})
                 send_to_all(now, clientaddr, "SERVER", f"User {usrn} leaved from chat.")
-                clientconn.send(lzc.compress(json.dumps({"type":"leave_ready"}).encode()))
+                clientconn.send(base64.b64encode(json.dumps({"type":"leave_ready"}).encode()))
         except sc.timeout:
             usr = getUsernameByConn(clientconn)
             ConnList.remove({"conn": clientconn, "username": usr})
@@ -155,7 +153,7 @@ def send_to_all(time, addr, username, message):
     for conndata in ConnList:
         conn = conndata["conn"]
         DEBUG = getParamByConn(conn, "debug")
-        conn.send(lzc.compress(json.dumps({"type": "message_history", "args": {"history": ''.join(MessageHistoryDEBUG if DEBUG else MessageHistory)}}).encode()))
+        conn.send(base64.b64encode(json.dumps({"type": "message_history", "args": {"history": ''.join(MessageHistoryDEBUG if DEBUG else MessageHistory)}}).encode()))
 
 while True:
     conn, addr = sock.accept()

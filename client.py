@@ -4,9 +4,8 @@ import json
 import os
 import requests as rq
 import sys
-import lzma
-lzd = lzma.LZMADecompressor()
-lzc = lzma.LZMACompressor()
+import base64
+import traceback
 
 class bcolors:
     HEADER = '\033[95m'
@@ -102,7 +101,7 @@ try:
 
     print(f"{bcolors.OKGREEN}[CONNECTION] Connected succesfully!{bcolors.ENDC}")
 
-    sock.send(lzc.compress(json.dumps({"type": "connected", "args": {"username": USERNAME, "debug": DEBUG}})).encode())
+    sock.send(base64.b64encode(json.dumps({"type": "connected", "args": {"username": USERNAME, "debug": DEBUG}}).encode()))
 
     def send_thread():
         global Active
@@ -111,11 +110,11 @@ try:
                 com = input(">>> ")
                 if com.startswith("/"):
                     if com == "/leave":
-                        sock.send(lzc.compress(json.dumps({"type": "leave", "args": {"username": USERNAME}})).encode())
+                        sock.send(base64.b64encode(json.dumps({"type": "leave", "args": {"username": USERNAME}}).encode()))
                         print(f"{bcolors.FAIL}Leaving...{bcolors.ENDC}")
                 else:
                     if Active:
-                        sock.send(lzc.compress(json.dumps({"type": "message", "args": {"username": USERNAME, "message": com}})).encode())
+                        sock.send(base64.b64encode(json.dumps({"type": "message", "args": {"username": USERNAME, "message": com}}).encode()))
             else:
                 break
         return 1
@@ -125,8 +124,8 @@ try:
         while True:
             if Active:
                 try:
-                    compressedData = sock.recv(1024*16)
-                    data = json.loads(lzd.decompress(compressedData.decode()))
+                    compressedData = sock.recv(1024**2)
+                    data = json.loads(base64.b64decode(compressedData))
                     if data["type"] == "message_history":
                         if os.name == "nt":
                             os.system("cls")
@@ -159,4 +158,4 @@ except sc.timeout:
 
 except Exception as e:
     print(f"{bcolors.FAIL}[CONNECTION] Excepted an error!{bcolors.ENDC}")
-    print(e)
+    print(f"{bcolors.FAIL}{traceback.format_exc()}{bcolors.ENDC}")
