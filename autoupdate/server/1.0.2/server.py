@@ -129,18 +129,21 @@ def client_thread(clientconn,clientaddr):
                 send_to_all(now, clientaddr, usrn, data["args"]["message"])
             if data["type"] == "leave":
                 usrn = data["args"]["username"]
+                debug = getParamByConn(clientconn, "debug")
                 usr = getUsernameByConn(clientconn)
-                ConnList.remove({"conn": clientconn, "username": usr})
+                ConnList.remove({"conn": clientconn, "addr": clientaddr, "username": usr, "debug": debug})
                 send_to_all(now, clientaddr, "SERVER", f"User {usrn} leaved from chat.")
                 clientconn.send(base64.b64encode(json.dumps({"type":"leave_ready"}).encode()))
         except sc.timeout:
             usr = getUsernameByConn(clientconn)
-            ConnList.remove({"conn": clientconn, "username": usr})
+            debug = getParamByConn(clientconn, "debug")
+            ConnList.remove({"conn": clientconn, "addr": clientaddr, "username": usr, "debug": debug})
             send_to_all(now, clientaddr, "SERVER", f"User {usr} timed out!")
             break
         except sc.error:
             usr = getUsernameByConn(clientconn)
-            ConnList.remove({"conn": clientconn, "username": usr})
+            debug = getParamByConn(clientconn, "debug")
+            ConnList.remove({"conn": clientconn, "addr": clientaddr, "username": usr, "debug": debug})
             send_to_all(now, clientaddr, "SERVER", f"User {usr} errored!")
             print(f"{bcolors.FAIL}{traceback.format_exc()}{bcolors.ENDC}")
             break
