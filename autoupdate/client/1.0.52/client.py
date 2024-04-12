@@ -52,7 +52,7 @@ for i in range(1,len(ARGV)):
     if KEY.lower() == "--ip" or KEY.upper() == "-I":
         IPArgs = ARGV[i]
     if KEY.lower() == "--port" or KEY.upper() == "-P":
-        PortArgs = ARGV[i]
+        PortArgs = int(ARGV[i])
     if KEY.lower() == "--username" or KEY.upper() == "-U":
         UsernameArgs = ARGV[i]
     if KEY.lower() == "--timeout" or KEY.upper() == "-T":
