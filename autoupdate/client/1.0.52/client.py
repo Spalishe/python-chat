@@ -126,7 +126,7 @@ try:
             if Active:
                 try:
                     compressedData = sock.recv(1024*16)
-                    data = json.loads(lzd.decompress(compressedData).decode())
+                    data = json.loads(lzd.decompress(compressedData.decode()))
                     if data["type"] == "message_history":
                         if os.name == "nt":
                             os.system("cls")
