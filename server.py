@@ -7,6 +7,9 @@ import traceback
 import requests as rq
 import sys
 import os
+import lzma
+lzc = lzma.LZMACompressor()
+lzd = lzma.LZMADecompressor()
 
 class bcolors:
     HEADER = '\033[95m'
@@ -19,7 +22,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-VERS = "1.0.1"
+VERS = "1.0.2"
 
 AUTOUPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/server/latestversion.txt")
 VERSIONLIST = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/server/versionlist.txt")
@@ -38,44 +41,31 @@ else:
 
 ARGV = sys.argv
 
-ARGS = {}
-
 for i in range(1,len(ARGV)):
     KEY = ARGV[i]
     if KEY.lower() == "--upgrade":
-        ARGS["upgrade"] = int(ARGV[i] or 0)
-    if KEY.lower() == "--help" or KEY == "-?":
-        ARGS["help"] = True
-    if KEY.lower() == "--debug":
-        ARGS["debug"] = True
-
-if ARGS["help"] == True:
-    print("""List of available arguments: 
-    --upgrade: Upgrades program to selected version
-    --help: Shows this menu
-    --debug: Enables debug mode
-""")
-    os._exit()
-
-if ARGS["upgrade"]:
-    ver = ARGS["upgrade"] 
-    if ARGS["upgrade"] != 0:
-        if checkExistVersion(ARGS["upgrade"]):
-            print(f"{bcolors.OKGREEN}[UPDATE] Found version {ver}, downloading...{bcolors.ENDC}")
-            UPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/server/" + ver + "/server.py")
-            f = open(os.path.realpath(__file__), "w")
-            f.write(UPDATEDATA.text)
-            f.close()
-            print(f"{bcolors.OKGREEN}[UPDATE] Updated succesfully.{bcolors.ENDC}")
-            os._exit()
+        ver = ARGV[i+1] if not ARGV[i+1].startswith("-") else "0" 
+        if ver != "0":
+            if checkExistVersion(ver):
+                print(f"{bcolors.OKGREEN}[UPDATE] Found version {ver}, downloading...{bcolors.ENDC}")
+                UPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/server/" + ver + "/server.py")
+                f = open(os.path.realpath(__file__), "w")
+                f.write(UPDATEDATA.text)
+                f.close()
+                print(f"{bcolors.OKGREEN}[UPDATE] Updated succesfully.{bcolors.ENDC}")
+                os._exit(0)
         else:
             print(f"{bcolors.FAIL}[UPDATE] Version {ver} is not exists!{bcolors.ENDC}")
-            os._exit()
-    else:
-        print("List of existing versions:\n" + VERSIONLIST.text)
-        os._exit()
+            os._exit(0)
+    if KEY.lower() == "--help" or KEY == "-?":
+        print("""List of available arguments: 
+    --upgrade: Upgrades program to selected version
+    --help: Shows this menu
+""")
+        os._exit(0)
 
 MessageHistory = []
+MessageHistoryDEBUG = []
 ConnList = []
 
 IP = "192.168.1.29" 
@@ -96,6 +86,12 @@ def getUsernameByConn(conn):
     for conndata in ConnList:
         if conndata["conn"] == conn:
             return conndata["username"]
+        
+def getParamByConn(conn, param):
+    for conndata in ConnList:
+        if conndata["conn"] == conn:
+            return conndata[param]
+
 
 def checkIfHasValue(conn):
     for conndata in ConnList:
@@ -109,7 +105,7 @@ def client_thread_check(clientconn,clientaddr):
     while True:
         time.sleep(1)
         if checkIfHasValue(clientconn):
-            clientconn.send(json.dumps({"type":"check"}).encode())
+            clientconn.send(lzc.compress(json.dumps({"type":"check"}).encode()))
             TimeOutCount = 0
         else:
             TimeOutCount = TimeOutCount + 1
@@ -122,41 +118,44 @@ def client_thread(clientconn,clientaddr):
     while True:
         try:
             compressedData = clientconn.recv(1024)
-            data = json.loads(compressedData.decode())
+            data = json.loads(lzd.decompress(compressedData).decode())
             now = dt.now().strftime("%d/%m/%Y %H:%M:%S")
             if data["type"] == "connected":
                 usrn = data["args"]["username"]
-                send_to_all(now, "SERVER", f"User {usrn} joined to chat.")
-                ConnList.append({"conn": clientconn, "username": usrn})
-                clientconn.send(json.dumps({"type": "message_history", "args": {"history": ''.join(MessageHistory)}}).encode())
+                debug = data["args"]["debug"]
+                send_to_all(now, clientaddr, "SERVER", f"User {usrn} joined to chat.")
+                ConnList.append({"conn": clientconn, "addr": clientaddr, "username": usrn, "debug": debug})
+                clientconn.send(lzc.compress(json.dumps({"type": "message_history", "args": {"history": ''.join(MessageHistory)}}).encode()))
             if data["type"] == "message":
                 usrn = data["args"]["username"]
-                send_to_all(now, usrn, data["args"]["message"])
+                send_to_all(now, clientaddr, usrn, data["args"]["message"])
             if data["type"] == "leave":
                 usrn = data["args"]["username"]
                 usr = getUsernameByConn(clientconn)
                 ConnList.remove({"conn": clientconn, "username": usr})
-                send_to_all(now, "SERVER", f"User {usrn} leaved from chat.")
-                clientconn.send(json.dumps({"type":"leave_ready"}).encode())
+                send_to_all(now, clientaddr, "SERVER", f"User {usrn} leaved from chat.")
+                clientconn.send(lzc.compress(json.dumps({"type":"leave_ready"}).encode()))
         except sc.timeout:
             usr = getUsernameByConn(clientconn)
             ConnList.remove({"conn": clientconn, "username": usr})
-            send_to_all(now, "SERVER", f"User {usr} timed out!")
+            send_to_all(now, clientaddr, "SERVER", f"User {usr} timed out!")
             break
         except sc.error:
             usr = getUsernameByConn(clientconn)
             ConnList.remove({"conn": clientconn, "username": usr})
-            send_to_all(now, "SERVER", f"User {usr} errored!")
+            send_to_all(now, clientaddr, "SERVER", f"User {usr} errored!")
             print(f"{bcolors.FAIL}{traceback.format_exc()}{bcolors.ENDC}")
             break
     return 1
 
-def send_to_all(time, username, message):
+def send_to_all(time, addr, username, message):
     print(f"{bcolors.OKBLUE}[{time}] {username}: {message}{bcolors.ENDC}")
     MessageHistory.append(f"[{time}] {username}: {message}\n")
+    MessageHistoryDEBUG.append(f"[{time}] {username}{bcolors.OKGREEN}{addr}{bcolors.ENDC}: {message}\n")
     for conndata in ConnList:
         conn = conndata["conn"]
-        conn.send(json.dumps({"type": "message_history", "args": {"history": ''.join(MessageHistory)}}).encode())
+        DEBUG = getParamByConn(conn, "debug")
+        conn.send(lzc.compress(json.dumps({"type": "message_history", "args": {"history": ''.join(MessageHistoryDEBUG if DEBUG else MessageHistory)}}).encode()))
 
 while True:
     conn, addr = sock.accept()

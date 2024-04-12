@@ -19,7 +19,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-VERS = "1.0.5"
+VERS = "1.0.51"
 
 AUTOUPDATEDATA = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/client/latestversion.txt")
 VERSIONLIST = rq.get("https://raw.githubusercontent.com/Spalishe/python-chat/main/autoupdate/client/versionlist.txt")
@@ -73,7 +73,7 @@ for i in range(1,len(ARGV)):
                 os._exit(0)
         else:
             print("List of existing versions:\n" + VERSIONLIST.text)
-            os._exit()
+            os._exit(0)
     if KEY.lower() == "--help" or KEY == "-?":
         print("""List of available arguments: 
         --ip or -I: Specifies connection IPv4 address   
