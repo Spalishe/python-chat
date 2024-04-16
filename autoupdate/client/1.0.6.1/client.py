@@ -140,7 +140,7 @@ try:
                         if os.name == "nt":
                             os.system("cls")
                         else:
-                            os.system("clear -x")
+                            os.system("clear")
                         hist = data["args"]["history"]
                         print(f"{bcolors.OKCYAN}{hist}{bcolors.ENDC}")
                     if data["type"] == "check":
